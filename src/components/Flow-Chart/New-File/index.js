@@ -4,7 +4,6 @@ import firebaseDb from "../../../firebase";
 import Popup from "reactjs-popup";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
-import { useHistory } from "react-router-dom";
 
 const NewFile = () => {
   var initialData = [
@@ -127,7 +126,7 @@ const NewFile = () => {
   const [fileName, setFileName] = useState("");
   const [error, setError] = useState(false);
   const [nodes, setNodes] = useState([]);
-  const history = useHistory();
+  const [ele, setEle] = useState(initialData);
 
   useEffect(() => {
     firebaseDb.child("custom_nodes").on("value", (snapshot) => {
@@ -139,51 +138,51 @@ const NewFile = () => {
     });
   }, []);
 
-  Object.keys(nodes).map((id) => {
-    const elemen = nodes[id];
-    if (
-      elemen.textField === "true" &&
-      elemen.code === "true" &&
-      elemen.Image === "true"
-    ) {
-      editor.diagram.addShape("networkCard4", {
-        template: function (config) {
-          var template = "<section class='network_template'>";
-          template +=
-            "<SyntaxHighlighter wrapLines='" +
-            true +
-            "' showLineNumbers='" +
-            true +
-            "' language='javascript' style='" +
-            docco +
-            "'>" +
-            config.code +
-            "</SyntaxHighlighter>";
-          template += "<img src='" + config.img + "'></img>";
-          template += "<span>" + config.text + "</span>";
-          template += "</section>";
-          return template;
-        },
-        defaults: {
-          width: 120,
-          height: 120,
-          code: `function(){
-        console.log('Daya');
-      }`,
-          img: "https://source.unsplash.com/random",
-          text: "Text Field",
-        },
-        properties: [
-          { type: "arrange" },
-          { type: "text", label: "Code", property: "code" },
-          { type: "img", label: "photo" },
-          { type: "text", label: "Text Field", property: "text" },
-        ],
-      });
-      console.log("true");
-      console.log("false");
-    }
-  });
+  // Object.keys(nodes).map((id) => {
+  //   const elemen = nodes[id];
+  //   if (
+  //     elemen.textField === "true" &&
+  //     elemen.code === "true" &&
+  //     elemen.Image === "true"
+  //   ) {
+  //     editor.diagram.addShape("networkCard4", {
+  //       template: function (config) {
+  //         var template = "<section class='network_template'>";
+  //         template +=
+  //           "<SyntaxHighlighter wrapLines='" +
+  //           true +
+  //           "' showLineNumbers='" +
+  //           true +
+  //           "' language='javascript' style='" +
+  //           docco +
+  //           "'>" +
+  //           config.code +
+  //           "</SyntaxHighlighter>";
+  //         template += "<img src='" + config.img + "'></img>";
+  //         template += "<span>" + config.text + "</span>";
+  //         template += "</section>";
+  //         return template;
+  //       },
+  //       defaults: {
+  //         width: 120,
+  //         height: 120,
+  //         code: `function(){
+  //       console.log('Daya');
+  //     }`,
+  //         img: "https://source.unsplash.com/random",
+  //         text: "Text Field",
+  //       },
+  //       properties: [
+  //         { type: "arrange" },
+  //         { type: "text", label: "Code", property: "code" },
+  //         { type: "img", label: "photo" },
+  //         { type: "text", label: "Text Field", property: "text" },
+  //       ],
+  //     });
+  //     console.log("true");
+  //     console.log("false");
+  //   }
+  // });
 
   const template = (config) =>
     `<section class='template' 
@@ -346,14 +345,32 @@ const NewFile = () => {
   });
 
   editor.parse(initialData);
-  // editor.events.on("ShapeMove", function () {
-  //   var state = editor.serialize();
-  //   console.log(state);
-  // });
+  editor.events.on("ShapeMove", function () {
+    var elements = editor.serialize();
+    setEle(elements);
+  });
 
   // const codeString = `function test(){
   //   String name = "Daya"
   // }`;
+
+  const saveFile = () => {
+    console.log(ele);
+    if (fileName === "") {
+      setError(true);
+      return;
+    } else if (fileName !== "") {
+      setError(false);
+    }
+    var data = {
+      name: fileName,
+      values: JSON.stringify(ele),
+      date: new Date().getTime(),
+    };
+    firebaseDb.child("charts").push(data);
+    alert(`Your ${fileName} file has been saved successfully`);
+    window.location.href = "/";
+  };
 
   return (
     <div className="App-2">
@@ -420,29 +437,7 @@ const NewFile = () => {
                   )}
                 </div>
                 <div className="actions">
-                  <button
-                    className="button"
-                    onClick={() => {
-                      if (fileName === "") {
-                        setError(true);
-                        return;
-                      } else if (fileName !== "") {
-                        setError(false);
-                      }
-                      var elements = editor.serialize();
-                      var data = {
-                        name: fileName,
-                        values: JSON.stringify(elements),
-                        date: new Date().getTime(),
-                      };
-                      firebaseDb.child("charts").push(data);
-                      alert(
-                        `Your ${fileName} file has been saved successfully`
-                      );
-                      close();
-                      window.location.href = "/";
-                    }}
-                  >
+                  <button className="button" onClick={saveFile}>
                     Save
                   </button>
                 </div>
@@ -451,7 +446,7 @@ const NewFile = () => {
           </Popup>
         </div>
       </header>
-      <div id="editor" style={{ zIndex: 10000, height: "100vh" }}></div>
+      <div id="editor" style={{ zIndex: 10000, height: "0vh" }}></div>
     </div>
   );
 };
