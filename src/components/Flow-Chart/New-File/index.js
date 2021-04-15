@@ -4,6 +4,7 @@ import firebaseDb from "../../../firebase";
 import Popup from "reactjs-popup";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { useHistory } from "react-router-dom";
 
 const NewFile = () => {
   var initialData = [
@@ -126,6 +127,7 @@ const NewFile = () => {
   const [fileName, setFileName] = useState("");
   const [error, setError] = useState(false);
   const [nodes, setNodes] = useState([]);
+  const history = useHistory();
 
   useEffect(() => {
     firebaseDb.child("custom_nodes").on("value", (snapshot) => {
@@ -166,8 +168,8 @@ const NewFile = () => {
           width: 120,
           height: 120,
           code: `function(){
-    console.log('Daya');
-  }`,
+        console.log('Daya');
+      }`,
           img: "https://source.unsplash.com/random",
           text: "Text Field",
         },
@@ -178,6 +180,8 @@ const NewFile = () => {
           { type: "text", label: "Text Field", property: "text" },
         ],
       });
+      console.log("true");
+      console.log("false");
     }
   });
 
@@ -436,6 +440,7 @@ const NewFile = () => {
                         `Your ${fileName} file has been saved successfully`
                       );
                       close();
+                      window.location.href = "/";
                     }}
                   >
                     Save
@@ -446,7 +451,7 @@ const NewFile = () => {
           </Popup>
         </div>
       </header>
-      <div id="editor"></div>
+      <div id="editor" style={{ zIndex: 10000, height: "100vh" }}></div>
     </div>
   );
 };
